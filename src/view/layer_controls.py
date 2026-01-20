@@ -49,13 +49,20 @@ class LayerControlWidget(QWidget):
         self.combo_bg.setVisible(False)
         self.btn_open_folder = QPushButton("📂") # Folder icon
         self.btn_open_folder.setToolTip("Open Backgrounds Folder")
+        self.btn_open_folder.setToolTip("Open Backgrounds Folder")
         self.btn_open_folder.setVisible(False)
         self.btn_open_folder.setFixedWidth(30)
+        
+        self.btn_refresh_bg = QPushButton("🔄")
+        self.btn_refresh_bg.setToolTip("Refresh Background List")
+        self.btn_refresh_bg.setVisible(False)
+        self.btn_refresh_bg.setFixedWidth(30)
         
         file_layout.addWidget(self.path_input)
         file_layout.addWidget(self.btn_browse)
         file_layout.addWidget(self.combo_bg)
         file_layout.addWidget(self.btn_open_folder)
+        file_layout.addWidget(self.btn_refresh_bg)
         
         self.file_group.setLayout(file_layout)
         layout.addWidget(self.file_group)
@@ -150,6 +157,7 @@ class LayerControlWidget(QWidget):
         self.combo_bg.currentIndexChanged.connect(self._on_change)
         self.btn_browse.clicked.connect(self._on_browse)
         self.btn_open_folder.clicked.connect(self._open_bg_folder)
+        self.btn_refresh_bg.clicked.connect(self._refresh_backgrounds)
         self.font_combo.currentTextChanged.connect(self._on_change)
         self.font_size.valueChanged.connect(self._on_change)
         self.combo_align.currentIndexChanged.connect(self._on_change)
@@ -258,12 +266,14 @@ class LayerControlWidget(QWidget):
              self.btn_browse.setVisible(False)
              self.combo_bg.setVisible(True)
              self.btn_open_folder.setVisible(True)
+             self.btn_refresh_bg.setVisible(True)
              self._populate_backgrounds(layer.image_path)
         else:
              self.path_input.setVisible(True)
              self.btn_browse.setVisible(True)
              self.combo_bg.setVisible(False)
              self.btn_open_folder.setVisible(False)
+             self.btn_refresh_bg.setVisible(False)
         
         # Lock Input type for background and hide dimensions
         if is_background:
@@ -364,6 +374,24 @@ class LayerControlWidget(QWidget):
         if not os.path.exists(bg_dir):
             os.makedirs(bg_dir)
         QDesktopServices.openUrl(QUrl.fromLocalFile(bg_dir))
+
+    def _refresh_backgrounds(self):
+        # preserve current selection if possible
+        current_text = self.combo_bg.currentText()
+        # if current text is empty but image_path is set (e.g. from file system), try to get filename
+        if not current_text and self._current_layer and self._current_layer.image_path:
+             current_text = os.path.basename(self._current_layer.image_path)
+        
+        # We pass full path to _populate but it matches by basename
+        # So we can just rebuild the full path logic or reuse _populate
+        # _populate takes 'current_path'
+        
+        # If we have a selected item, we want to keep it selected check if it still exists
+        path_to_pass = ""
+        if current_text:
+             path_to_pass = os.path.join("assets", "backgrounds", current_text)
+        
+        self._populate_backgrounds(path_to_pass)
 
     def _populate_backgrounds(self, current_path):
         self.combo_bg.blockSignals(True)

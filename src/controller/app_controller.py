@@ -11,7 +11,7 @@ import sys
 from utils.updater import Updater
 from PyQt6.QtWidgets import QMessageBox
 
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 
 class UpdateWorker(QThread):
     finished = pyqtSignal(bool, str, str) # found, version, url
