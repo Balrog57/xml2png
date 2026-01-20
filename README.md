@@ -67,3 +67,8 @@ The executable will be located in the `dist/XML2PNG_Build/` folder.
 - **src/model**: XML parsing (`xml_parser.py`) and Image Composition logic (`compositor.py`).
 - **src/view**: PyQt6 User Interface (`main_window.py`, `layer_controls.py`, `preview_widget.py`).
 - **src/controller**: Application logic and threading (`app_controller.py`).
+
+## Credits
+
+This project is a modernized and modular fork of the application originally proposed by [r0man0](http://r0man0.free.fr/).
+
