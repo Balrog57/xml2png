@@ -47,10 +47,9 @@ jobs:
                   name: XML2PNG-Installer
                   path: installer/
 
-            - name: Create Release
-              id: create_release
-              uses: softprops/action-gh-release@v1
+            - name: Attach Assets to Release
               if: startsWith(github.ref, 'refs/tags/')
+              uses: softprops/action-gh-release@v1
               with:
                   files: |
                       installer/Setup_XML2PNG.exe
@@ -58,24 +57,13 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            # Also support pushing to "latest" release for main branch pushes if preferred,
-            # but strictly Release usually requires a tag.
-            # We will make a generic "continuous" release or just upload assets to a tag if the user pushes one.
-
-            - name: Publish Nightly Release (for main branch)
-              if: github.ref == 'refs/heads/main'
-              uses: softprops/action-gh-release@v1
+            - name: Upload Installer Artifact (for manual download)
+              uses: actions/upload-artifact@v4
               with:
-                  tag_name: nightly
-                  name: Development Build
-                  draft: false
-                  prerelease: true
-                  files: |
-                      installer/Setup_XML2PNG.exe
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  name: XML2PNG-Installer
+                  path: installer/
 
-            - name: Upload Portable Artifact
+            - name: Upload Portable Artifact (for manual download)
               uses: actions/upload-artifact@v4
               with:
                   name: XML2PNG-Portable
