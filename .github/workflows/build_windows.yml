@@ -52,7 +52,6 @@ jobs:
               with:
                   files: |
                       installer/Setup_XML2PNG.exe
-                      dist/XML2PNG_Build/*
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
