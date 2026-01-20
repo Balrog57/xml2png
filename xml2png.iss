@@ -5,7 +5,7 @@
 #define MyAppVersion "1.0"
 #define MyAppPublisher "Your Name"
 #define MyAppURL "https://www.example.com/"
-#define MyAppExeName "XML2PNG.exe"
+#define MyAppExeName "XML2PNG_Build.exe"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
@@ -36,8 +36,8 @@ Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "dist\XML2PNG\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "dist\XML2PNG\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "dist\XML2PNG_Build\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\XML2PNG_Build\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

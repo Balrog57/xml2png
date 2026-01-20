@@ -1,40 +1,54 @@
 name: Build Windows EXE
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-  workflow_dispatch:
+    push:
+        branches: ["main"]
+    pull_request:
+        branches: ["main"]
+    workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: windows-latest
+    build:
+        runs-on: windows-latest
 
-    steps:
-    - uses: actions/checkout@v3
+        steps:
+            - uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: "3.10"
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pyinstaller
+            - name: Install dependencies
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install -r requirements.txt
+                  pip install pyinstaller
 
-    - name: Build with PyInstaller
-      run: |
-        pyinstaller xml2png.spec --clean --noconfirm
+            - name: Build with PyInstaller
+              run: |
+                  pyinstaller xml2png.spec --clean --noconfirm
 
-    - name: Copy Assets
-      run: |
-        xcopy "assets" "dist\XML2PNG_Build\assets\" /E /I /Y
+            - name: Copy Assets
+              run: |
+                  xcopy "assets" "dist\XML2PNG_Build\assets\" /E /I /Y
 
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: XML2PNG-Windows
-        path: dist/XML2PNG_Build/
+            - name: Setup Inno Setup
+              run: |
+                  choco install innosetup
+
+            - name: Compile Installer
+              run: |
+                  & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" xml2png.iss
+
+            - name: Upload Installer Artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: XML2PNG-Installer
+                  path: installer/
+
+            - name: Upload Portable Artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: XML2PNG-Portable
+                  path: dist/XML2PNG_Build/
