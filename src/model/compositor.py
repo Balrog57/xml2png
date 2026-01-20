@@ -339,13 +339,32 @@ class ImageCompositor:
         # User requirement: "Adjust the image boundaries as you see fit".
         # Let's simple Scale to (Width, Height).
         
-        target_w = layer.width
-        target_h = layer.height
+        box_w = layer.width
+        box_h = layer.height
         
-        if target_w <= 0 or target_h <= 0:
-            # Use original size if not constrained? Or treat 0 as "original"
+        if box_w <= 0 or box_h <= 0:
+            # No constraints, use original size
             target_w, target_h = overlay.size
-
-        overlay_resized = overlay.resize((target_w, target_h), Image.Resampling.LANCZOS)
+            overlay_resized = overlay
+            paste_x = layer.x
+            paste_y = layer.y
+        else:
+            # Aspect Fit logic
+            img_w, img_h = overlay.size
+            ratio_w = box_w / img_w
+            ratio_h = box_h / img_h
+            scale = min(ratio_w, ratio_h)
+            
+            target_w = int(img_w * scale)
+            target_h = int(img_h * scale)
+            
+            overlay_resized = overlay.resize((target_w, target_h), Image.Resampling.LANCZOS)
+            
+            # Center in box
+            off_x = (box_w - target_w) // 2
+            off_y = (box_h - target_h) // 2
+            
+            paste_x = layer.x + off_x
+            paste_y = layer.y + off_y
         
-        canvas.alpha_composite(overlay_resized, (layer.x, layer.y))
+        canvas.alpha_composite(overlay_resized, (paste_x, paste_y))

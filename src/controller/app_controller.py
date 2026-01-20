@@ -6,6 +6,23 @@ from model.compositor import ImageCompositor, Layer, LayerType
 from view.main_window import MainWindow
 
 import os
+import sys
+
+from utils.updater import Updater
+from PyQt6.QtWidgets import QMessageBox
+
+VERSION = "1.0.2"
+
+class UpdateWorker(QThread):
+    finished = pyqtSignal(bool, str, str) # found, version, url
+
+    def __init__(self, current_version):
+        super().__init__()
+        self.updater = Updater(current_version)
+
+    def run(self):
+        found, ver, url = self.updater.check_for_updates()
+        self.finished.emit(found, ver, url)
 
 class BatchWorker(QThread):
     progress = pyqtSignal(int)
@@ -86,10 +103,35 @@ class AppController(QObject):
         
         self.view.show()
         
-        # Initial UI Update
         self.view.layer_selector.setCurrentIndex(0) # Select Background by default
         self._on_layer_selected(0)
         self._update_preview()
+
+        # Check for updates
+        self.check_updates()
+
+    def check_updates(self):
+        self.update_worker = UpdateWorker(VERSION)
+        self.update_worker.finished.connect(self._on_update_check_finished)
+        self.update_worker.start()
+
+    def _on_update_check_finished(self, found, version, url):
+        if found:
+            reply = QMessageBox.question(
+                self.view, 
+                "Update Available", 
+                f"A new version ({version}) is available. Do you want to update now?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            )
+            
+            if reply == QMessageBox.StandardButton.Yes:
+                self.view.show_info("Downloading update... The application will restart automatically.")
+                # We do this in the main thread now or another worker? 
+                # Updater.download_and_install is blocking but has no UI feedback except print.
+                # Let's run it.
+                qt_updater = Updater(VERSION) # Re-instantiate or reuse
+                qt_updater.download_and_install(url)
+                # It calls sys.exit(0) on success
 
     def _init_default_layers(self):
         # 0: Background

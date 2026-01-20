@@ -3,8 +3,8 @@ from PyQt6.QtWidgets import (
     QSpinBox, QCheckBox, QGroupBox, QLineEdit, QPushButton, QSlider, QFormLayout,
     QFileDialog, QColorDialog
 )
-from PyQt6.QtGui import QColor, QFontDatabase
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QColor, QFontDatabase, QAction, QDesktopServices
+from PyQt6.QtCore import Qt, pyqtSignal, QUrl
 import os
 
 from model.compositor import Layer, LayerType, TextSource
@@ -47,10 +47,15 @@ class LayerControlWidget(QWidget):
         # Background selector (hidden by default)
         self.combo_bg = QComboBox()
         self.combo_bg.setVisible(False)
+        self.btn_open_folder = QPushButton("📂") # Folder icon
+        self.btn_open_folder.setToolTip("Open Backgrounds Folder")
+        self.btn_open_folder.setVisible(False)
+        self.btn_open_folder.setFixedWidth(30)
         
         file_layout.addWidget(self.path_input)
         file_layout.addWidget(self.btn_browse)
         file_layout.addWidget(self.combo_bg)
+        file_layout.addWidget(self.btn_open_folder)
         
         self.file_group.setLayout(file_layout)
         layout.addWidget(self.file_group)
@@ -144,6 +149,7 @@ class LayerControlWidget(QWidget):
         self.path_input.textChanged.connect(self._on_change)
         self.combo_bg.currentIndexChanged.connect(self._on_change)
         self.btn_browse.clicked.connect(self._on_browse)
+        self.btn_open_folder.clicked.connect(self._open_bg_folder)
         self.font_combo.currentTextChanged.connect(self._on_change)
         self.font_size.valueChanged.connect(self._on_change)
         self.combo_align.currentIndexChanged.connect(self._on_change)
@@ -251,11 +257,13 @@ class LayerControlWidget(QWidget):
              self.path_input.setVisible(False)
              self.btn_browse.setVisible(False)
              self.combo_bg.setVisible(True)
+             self.btn_open_folder.setVisible(True)
              self._populate_backgrounds(layer.image_path)
         else:
              self.path_input.setVisible(True)
              self.btn_browse.setVisible(True)
              self.combo_bg.setVisible(False)
+             self.btn_open_folder.setVisible(False)
         
         # Lock Input type for background and hide dimensions
         if is_background:
@@ -351,6 +359,12 @@ class LayerControlWidget(QWidget):
 
         self.layer_changed.emit()
 
+    def _open_bg_folder(self):
+        bg_dir = os.path.abspath(os.path.join("assets", "backgrounds"))
+        if not os.path.exists(bg_dir):
+            os.makedirs(bg_dir)
+        QDesktopServices.openUrl(QUrl.fromLocalFile(bg_dir))
+
     def _populate_backgrounds(self, current_path):
         self.combo_bg.blockSignals(True)
         self.combo_bg.clear()
@@ -368,5 +382,11 @@ class LayerControlWidget(QWidget):
             index = self.combo_bg.findText(name)
             if index >= 0:
                 self.combo_bg.setCurrentIndex(index)
+        elif files:
+            # If no path set but we have files, select first and Sync to Model
+            self.combo_bg.setCurrentIndex(0)
+            # FORCE UPDATE MODEL
+            if self._current_layer:
+                self._current_layer.image_path = os.path.abspath(os.path.join(bg_dir, files[0]))
                 
         self.combo_bg.blockSignals(False)
