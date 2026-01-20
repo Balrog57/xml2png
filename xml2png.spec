@@ -4,7 +4,7 @@ block_cipher = None
 
 a = Analysis(
     ['src/main.py'],
-    pathex=['c:\\Users\\Marc\\Documents\\1G1R\\Balrog Toolkit\\xml2png\\src'],
+    pathex=[os.path.abspath('src')],
     binaries=[],
     datas=[],
     hiddenimports=['controller', 'model', 'view', 'PyQt6'],
