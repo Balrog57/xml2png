@@ -11,7 +11,7 @@ import sys
 from utils.updater import Updater
 from PyQt6.QtWidgets import QMessageBox
 
-VERSION = "1.0.3"
+VERSION = "1.0.4"
 
 class UpdateWorker(QThread):
     finished = pyqtSignal(bool, str, str) # found, version, url
@@ -98,12 +98,12 @@ class AppController(QObject):
         self.layers: List[Layer] = []
         self._init_default_layers()
         
-        self.view.set_layer_names(10)
+        self.view.set_layers(self.layers)
         self._connect_signals()
         
         self.view.show()
         
-        self.view.layer_selector.setCurrentIndex(0) # Select Background by default
+        self.view.select_layer(0)  # Select Background by default
         self._on_layer_selected(0)
         self._update_preview()
 
@@ -135,7 +135,15 @@ class AppController(QObject):
 
     def _init_default_layers(self):
         # 0: Background
-        bg = Layer(name="Background", type=LayerType.IMAGE, x=0, y=0, width=1024, height=768)
+        bg = Layer(name="Background", type=LayerType.IMAGE, x=0, y=0, width=1024, height=768, enabled=True, visible=True)
+        
+        # Force default background path from assets
+        bg_dir = os.path.join("assets", "backgrounds")
+        if os.path.exists(bg_dir):
+            files = [f for f in os.listdir(bg_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+            if files:
+                bg.image_path = os.path.abspath(os.path.join(bg_dir, files[0]))
+
         self.layers.append(bg)
         
         # 1-10: Layers
@@ -146,6 +154,7 @@ class AppController(QObject):
         self.view.xml_path_changed.connect(self.load_xml)
         self.view.dest_path_changed.connect(self.set_destination)
         self.view.layer_selected.connect(self._on_layer_selected)
+        self.view.layer_visibility_toggled.connect(self._on_layer_visibility_toggled)
         self.view.generate_clicked.connect(self.toggle_generation)
         
         self.view.layer_controls.layer_changed.connect(self._on_layer_modified)
@@ -173,7 +182,12 @@ class AppController(QObject):
     def _on_layer_modified(self):
         # Layer object is modified in place by the widget controls
         self._update_preview()
-
+    
+    def _on_layer_visibility_toggled(self, index: int, is_visible: bool):
+        if 0 <= index < len(self.layers):
+            self.layers[index].visible = is_visible
+            self._update_preview()
+    
     def prev_game(self):
         if self.games and self.current_game_index > 0:
             self.current_game_index -= 1
@@ -190,14 +204,14 @@ class AppController(QObject):
             game = self.games[self.current_game_index]
         else:
             # Dummy game for preview if no XML loaded
-            game = GameEntry("Demo Game", "This is a description of the demo game.", "1999", "Platformer", "Nintendo")
+            game = GameEntry("Sonic The Hedgehog 2", "Sonic The Hedgehog 2", "Dr. Robotnik is back and he's planning to take over the world again! It's up to Sonic and his new pal Tails to stop him.", "1992", "Platformer", "SEGA")
 
         # Background path logic
         bg_layer = self.layers[0]
         bg_path = bg_layer.image_path if (bg_layer.type == LayerType.IMAGE and bg_layer.enabled) else ""
         
         # Determine the currently selected layer to highlight
-        idx = self.view.layer_selector.currentIndex()
+        idx = self.view.layer_list._selected_index if hasattr(self.view, 'layer_list') else 0
         highlight_layer = None
         if 0 <= idx < len(self.layers):
             highlight_layer = self.layers[idx]

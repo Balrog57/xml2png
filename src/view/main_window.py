@@ -1,11 +1,12 @@
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, 
-    QLabel, QLineEdit, QFileDialog, QComboBox, QProgressBar, QMessageBox
+    QLabel, QLineEdit, QFileDialog, QProgressBar, QMessageBox
 )
 from PyQt6.QtCore import pyqtSignal
 
 from view.preview_widget import PreviewWidget
 from view.layer_controls import LayerControlWidget
+from view.layer_list_widget import LayerListWidget
 from model.compositor import Layer, LayerType
 
 class MainWindow(QMainWindow):
@@ -14,6 +15,7 @@ class MainWindow(QMainWindow):
     dest_path_changed = pyqtSignal(str)
     generate_clicked = pyqtSignal()
     layer_selected = pyqtSignal(int) # index 0=BG, 1=Layer1...
+    layer_visibility_toggled = pyqtSignal(int, bool)  # index, is_visible
 
     def __init__(self):
         super().__init__()
@@ -57,15 +59,20 @@ class MainWindow(QMainWindow):
         # Destination
         right_layout.addLayout(self._create_file_picker("Select Destination:", self.dest_path_changed, is_folder=True))
         
-        right_layout.addSpacing(20)
+        right_layout.addSpacing(10)
 
-        # 2. Layer Selection
-        right_layout.addWidget(QLabel("<b>Layer Configuration</b>"))
-        self.layer_selector = QComboBox()
-        self.layer_selector.currentIndexChanged.connect(self._on_layer_changed)
-        right_layout.addWidget(self.layer_selector)
+        # 2. Layer List with Eye toggles
+        right_layout.addWidget(QLabel("<b>Layers</b>"))
+        self.layer_list = LayerListWidget()
+        self.layer_list.setFixedHeight(180)
+        self.layer_list.layer_selected.connect(self._on_layer_changed)
+        self.layer_list.layer_visibility_changed.connect(self._on_visibility_toggled)
+        right_layout.addWidget(self.layer_list)
+
+        right_layout.addSpacing(10)
 
         # 3. Layer Controls
+        right_layout.addWidget(QLabel("<b>Layer Settings</b>"))
         self.layer_controls = LayerControlWidget()
         right_layout.addWidget(self.layer_controls)
         
@@ -112,17 +119,23 @@ class MainWindow(QMainWindow):
 
     def _on_layer_changed(self, index):
         self.layer_selected.emit(index)
+    
+    def _on_visibility_toggled(self, index, is_visible):
+        self.layer_visibility_toggled.emit(index, is_visible)
 
-    def set_layer_names(self, count):
-        self.layer_selector.blockSignals(True)
-        self.layer_selector.clear()
-        self.layer_selector.addItem("Background")
-        for i in range(1, count + 1):
-            self.layer_selector.addItem(f"Layer #{i}")
-        self.layer_selector.blockSignals(False)
+    def set_layers(self, layers: list):
+        """Set layer list from Layer objects."""
+        names = [layer.name for layer in layers]
+        visibilities = [layer.visible for layer in layers]  # Use visible for eye state
+        self.layer_list.set_layers(names, visibilities)
+    
+    def select_layer(self, index: int):
+        """Select a layer in the list."""
+        self.layer_list.select_layer(index)
 
     def show_error(self, message):
         QMessageBox.critical(self, "Error", message)
 
     def show_info(self, message):
         QMessageBox.information(self, "Info", message)
+

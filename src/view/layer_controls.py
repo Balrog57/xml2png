@@ -10,7 +10,7 @@ import os
 from model.compositor import Layer, LayerType, TextSource
 
 class LayerControlWidget(QWidget):
-    # Signal emitted when any parameter changes, sending the updated Layer object
+    # Signal emitted when any parameter changes
     layer_changed = pyqtSignal()
 
     def __init__(self, parent=None):
@@ -148,6 +148,24 @@ class LayerControlWidget(QWidget):
         self.pos_group.setLayout(pos_layout)
         layout.addWidget(self.pos_group)
         
+        # -- Image Transformations (only for Image layers) --
+        self.transform_group = QGroupBox("Image Transformations")
+        transform_layout = QFormLayout()
+        
+        self.chk_mirror = QCheckBox("Mirror (Horizontal Flip)")
+        transform_layout.addRow(self.chk_mirror)
+        
+        self.chk_stretch = QCheckBox("Stretch to Fit")
+        self.chk_stretch.setToolTip("If checked, image fills the box ignoring aspect ratio.")
+        transform_layout.addRow(self.chk_stretch)
+        
+        self.combo_rotation = QComboBox()
+        self.combo_rotation.addItems(["0°", "90°", "180°", "270°"])
+        transform_layout.addRow("Rotation:", self.combo_rotation)
+        
+        self.transform_group.setLayout(transform_layout)
+        layout.addWidget(self.transform_group)
+        
         layout.addStretch()
 
         # Connect signals
@@ -168,6 +186,10 @@ class LayerControlWidget(QWidget):
         self.txt_prefix.textChanged.connect(self._on_change)
         self.txt_suffix.textChanged.connect(self._on_change)
         self.chk_use_tag_name.toggled.connect(self._on_change)
+        # Image transformations
+        self.chk_mirror.toggled.connect(self._on_change)
+        self.chk_stretch.toggled.connect(self._on_change)
+        self.combo_rotation.currentIndexChanged.connect(self._on_change)
 
     def _pick_color(self):
         if not self._current_layer: return
@@ -237,17 +259,17 @@ class LayerControlWidget(QWidget):
         self.setEnabled(True)
         
         # Map LayerType/TextSource to Combo
-        # Logic to select correct index.
+        # Show None if layer is disabled, otherwise show type
         idx = 0
         if layer.enabled:
-             if layer.type == LayerType.TEXT:
-                 if layer.text_source == TextSource.NAME: idx = 1
-                 elif layer.text_source == TextSource.DESCRIPTION: idx = 2
-                 elif layer.text_source == TextSource.GENRE: idx = 3
-                 elif layer.text_source == TextSource.YEAR: idx = 4
-                 elif layer.text_source == TextSource.MANUFACTURER: idx = 5
-             elif layer.type == LayerType.IMAGE: idx = 6
-             elif layer.type == LayerType.IMAGE_FOLDER: idx = 7
+            if layer.type == LayerType.TEXT:
+                if layer.text_source == TextSource.NAME: idx = 1
+                elif layer.text_source == TextSource.DESCRIPTION: idx = 2
+                elif layer.text_source == TextSource.GENRE: idx = 3
+                elif layer.text_source == TextSource.YEAR: idx = 4
+                elif layer.text_source == TextSource.MANUFACTURER: idx = 5
+            elif layer.type == LayerType.IMAGE: idx = 6
+            elif layer.type == LayerType.IMAGE_FOLDER: idx = 7
         
         self.combo_type.setCurrentIndex(idx)
         
@@ -310,6 +332,13 @@ class LayerControlWidget(QWidget):
         self.spin_y.setValue(layer.y)
         self.spin_w.setValue(layer.width)
         self.spin_h.setValue(layer.height)
+        
+        # Image Transformations (visibility and values)
+        self.transform_group.setVisible(is_media and not is_background)
+        self.chk_mirror.setChecked(layer.mirror)
+        self.chk_stretch.setChecked(layer.stretch)
+        rotation_map = {0: 0, 90: 1, 180: 2, 270: 3}
+        self.combo_rotation.setCurrentIndex(rotation_map.get(layer.rotation, 0))
 
         self._block_signals = False
 
@@ -321,9 +350,11 @@ class LayerControlWidget(QWidget):
         idx = self.combo_type.currentIndex()
         data = self.combo_type.currentData()
         
-        if idx == 0: 
+        if idx == 0:
+            # None selected - disable layer (but eye state unchanged)
             self._current_layer.enabled = False
         else:
+            # Enable the layer and set its type
             self._current_layer.enabled = True
             if isinstance(data, TextSource):
                 self._current_layer.type = LayerType.TEXT
@@ -337,6 +368,7 @@ class LayerControlWidget(QWidget):
                  bg_name = self.combo_bg.currentText()
                  if bg_name:
                      self._current_layer.image_path = os.path.abspath(os.path.join("assets", "backgrounds", bg_name))
+                     self._current_layer.enabled = True
             else:
                  self._current_layer.image_path = self.path_input.text()
         elif self._current_layer.type == LayerType.IMAGE_FOLDER:
@@ -364,8 +396,18 @@ class LayerControlWidget(QWidget):
         # Name option visibility update
         self.chk_use_tag_name.setVisible(self._current_layer.text_source == TextSource.NAME)
         
+        is_media = self._current_layer.type in [LayerType.IMAGE, LayerType.IMAGE_FOLDER]
+        is_background = self._current_layer.name == "Background"
+        
         self.text_group.setVisible(self._current_layer.type == LayerType.TEXT)
-        self.file_group.setVisible(self._current_layer.type != LayerType.TEXT)
+        self.file_group.setVisible(is_media)
+        self.transform_group.setVisible(is_media and not is_background)
+        
+        # Save image transformations
+        self._current_layer.mirror = self.chk_mirror.isChecked()
+        self._current_layer.stretch = self.chk_stretch.isChecked()
+        rotation_values = [0, 90, 180, 270]
+        self._current_layer.rotation = rotation_values[self.combo_rotation.currentIndex()]
 
         self.layer_changed.emit()
 

@@ -26,7 +26,8 @@ class TextSource(Enum):
 class Layer:
     name: str # "Layer #1"
     type: LayerType
-    enabled: bool = True
+    enabled: bool = False  # True if an input is configured (not None)
+    visible: bool = True   # Eye toggle - show/hide in preview (independent of enabled)
     
     # Position & Size
     x: int = 0
@@ -53,6 +54,11 @@ class Layer:
     image_path: str = "" # For static image
     folder_path: str = "" # For folder source
     fallback_text_layer: bool = False # If image missing, use text? (Simple boolean for now, or index)
+    
+    # Image Transformations
+    mirror: bool = False
+    stretch: bool = False
+    rotation: int = 0  # 0, 90, 180, 270
 
 class ImageCompositor:
     def __init__(self):
@@ -179,13 +185,14 @@ class ImageCompositor:
         bg_layer = layers[0]
         bg_img = None
         
-        if bg_layer.enabled and bg_layer.image_path and os.path.exists(bg_layer.image_path):
+        # Always load background to get dimensions, even if hidden
+        if bg_layer.image_path and os.path.exists(bg_layer.image_path):
             try:
                 bg_img = Image.open(bg_layer.image_path).convert("RGBA")
             except Exception:
                 pass
         
-        # Determine Target Size
+        # Determine Target Size from background (even if hidden)
         target_w, target_h = (1024, 768) # Default fallback
         if bg_img:
             target_w, target_h = bg_img.size
@@ -197,8 +204,8 @@ class ImageCompositor:
         canvas = Image.new("RGBA", (target_w, target_h), (0, 0, 0, 0))
         draw = ImageDraw.Draw(canvas)
         
-        # Draw Background Image
-        if bg_img:
+        # Draw Background Image only if layer is enabled AND visible
+        if bg_img and bg_layer.enabled and bg_layer.visible:
             # If output_size forced a different size, resize background?
             # Or center it?
             # User wants "preview adapts to background", so usually 1:1.
@@ -209,7 +216,8 @@ class ImageCompositor:
             canvas.paste(bg_img, (0, 0))
 
         for i, layer in enumerate(layers):
-            if not layer.enabled:
+            # Skip if not enabled (no input configured) or not visible (eye off)
+            if not layer.enabled or not layer.visible:
                 continue
             
             # Skip Layer 0 (Background) as it is handled above
@@ -231,17 +239,31 @@ class ImageCompositor:
     def _render_text_layer(self, canvas: Image.Image, draw: ImageDraw.Draw, layer: Layer, game: GameEntry):
         # 1. Get Text Content
         text = ""
-        if layer.text_source == TextSource.DESCRIPTION:
-            text = game.description
-        elif layer.text_source == TextSource.NAME:
-            # Default: rom_name. Option: display_name (<name>)
-            text = game.display_name if layer.use_game_name_tag else game.rom_name
-        elif layer.text_source == TextSource.YEAR:
-            text = game.year
-        elif layer.text_source == TextSource.GENRE:
-            text = game.genre
-        elif layer.text_source == TextSource.MANUFACTURER:
-            text = game.manufacturer
+        
+        if game is None:
+            # Default examples when no gamelist is loaded
+            if layer.text_source == TextSource.NAME:
+                text = "Sonic The Hedgehog 2"
+            elif layer.text_source == TextSource.DESCRIPTION:
+                text = "Dr. Robotnik is back and he's planning to take over the world again! It's up to Sonic and his new pal Tails to stop him."
+            elif layer.text_source == TextSource.GENRE:
+                text = "Platformer"
+            elif layer.text_source == TextSource.YEAR:
+                text = "1992"
+            elif layer.text_source == TextSource.MANUFACTURER:
+                text = "SEGA"
+        else:
+            if layer.text_source == TextSource.DESCRIPTION:
+                text = game.description
+            elif layer.text_source == TextSource.NAME:
+                # Default: rom_name. Option: display_name (<name>)
+                text = game.display_name if layer.use_game_name_tag else game.rom_name
+            elif layer.text_source == TextSource.YEAR:
+                text = game.year
+            elif layer.text_source == TextSource.GENRE:
+                text = game.genre
+            elif layer.text_source == TextSource.MANUFACTURER:
+                text = game.manufacturer
         
         if not text:
             return
@@ -315,6 +337,9 @@ class ImageCompositor:
         # Try finding image: rom_name.png, rom_name.jpg, game.name??
         # Usually rom_name.png
         
+        if not game:
+            return False
+            
         filename = f"{game.rom_name}.png"
         full_path = os.path.join(layer.folder_path, filename)
         
@@ -332,20 +357,25 @@ class ImageCompositor:
             return False
 
     def _paste_image(self, canvas: Image.Image, overlay: Image.Image, layer: Layer):
-        # Resize if needed
-        # Mode: Fit? Stretch?
-        # Assume stretch to Width/Height if defined? 
-        # Or if Width/Height define the max box, fit inside?
-        # User requirement: "Adjust the image boundaries as you see fit".
-        # Let's simple Scale to (Width, Height).
+        # Apply transformations: Mirror -> Rotation
+        if layer.mirror:
+            overlay = overlay.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+        
+        if layer.rotation in (90, 180, 270):
+            # PIL rotates counter-clockwise, so negate for clockwise
+            overlay = overlay.rotate(-layer.rotation, expand=True)
         
         box_w = layer.width
         box_h = layer.height
         
         if box_w <= 0 or box_h <= 0:
             # No constraints, use original size
-            target_w, target_h = overlay.size
             overlay_resized = overlay
+            paste_x = layer.x
+            paste_y = layer.y
+        elif layer.stretch:
+            # Stretch: Ignore aspect ratio, fill the box exactly
+            overlay_resized = overlay.resize((box_w, box_h), Image.Resampling.LANCZOS)
             paste_x = layer.x
             paste_y = layer.y
         else:
