@@ -83,7 +83,8 @@ from typing import List, Optional, Tuple, Dict
 class Layer:
     name: str
     type: LayerType
-    enabled: bool = True
+    enabled: bool = False     # True if an input is configured (not None)
+    visible: bool = True      # Eye toggle - show/hide in preview
     x: int = 0
     y: int = 0
     width: int = 100
@@ -99,7 +100,7 @@ class Layer:
 - **Classes**: PascalCase (e.g., `LayerControlWidget`, `ImageCompositor`)
 - **Functions/Methods**: snake_case (e.g., `parse_xml_file`, `update_preview`)
 - **Variables**: snake_case (e.g., `current_layer`, `dest_folder`)
-- **Constants**: UPPER_SNAKE_CASE (e.g., `VERSION = "1.0.3"`)
+- **Constants**: UPPER_SNAKE_CASE (e.g., `VERSION = "1.0.4"`)
 - **Private members**: prefix with underscore (e.g., `_current_layer`, `_block_signals`)
 
 ### Error Handling

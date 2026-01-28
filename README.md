@@ -16,7 +16,10 @@ A modern, robust, and performant tool to generate retro-gaming media (Artworks, 
   - **Fonts**: Scan and use installed System Fonts with search functionality.
 - **Real-time Preview**: 
   - Visual editor with accurate Aspect Ratio handling. 
-  - Highlights selected layer logic.
+  - Highlights selected layer bounding box.
+  - Demo text mode when no XML is loaded (shows example game: Sonic The Hedgehog 2).
+- **Layer Visibility Toggles**: Eye icon to show/hide individual layers without losing settings.
+- **Image Transformations**: Mirror (horizontal flip), Stretch (ignore aspect ratio), Rotation (0°, 90°, 180°, 270°).
 - **User Experience**:
   - Stop/Pause generation.
   - Automatic `assets/backgrounds` detection for easy background selection.
