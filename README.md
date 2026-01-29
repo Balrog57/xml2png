@@ -75,19 +75,6 @@ The executable will be located in the `dist/XML2PNG_Build/` folder.
 
 Ce projet est un fork modernisé et réécrit en Python de l'application originale **Xml2Png** créée par **r0man0 (Romain Langlois)**.
 
-> **Xml2Png - Convertisseur d'XML en PNG**
-> *Par r0man0 (Romain Langlois)*
->
-> Avec Xml2Png générez en quelques clics vos artworks avec le texte `<description>`, le texte `<year>`, le texte `<genre>` ou le texte `<manufacturer>` issu du fichier xml d'HyperSpin ou de Retrobat (Désormais compatible).
-> Vous pouvez choisir en plus de l'image de fond d'écran jusqu'à 5 calques (Layers) et utiliser dans ces calques soit du texte soit une image ou même un répertoire d'images (dont les noms de fichiers correspondent au XML).
-> Dans le cas d'un absent au répertoire d'image vous pouvez indiquer si vous souhaitez remplacer cette absence par une image, ou du texte à configurer dans le même calque.
->
-> 1. Sélectionnez votre liste xml
-> 2. Sélectionnez votre image d'arrière plan
-> 3. Sélectionnez le ou les layers et ajustez leurs options
-> 4. Sélectionnez votre répertoire de destination
-> 5. C'est parti & profitez ;-)
-
 **Remerciements originaux :**
 * Merci à : https://www.autohotkey.com/
 * Plus d'applications et de contenus pour votre frontend à : http://r0man0.free.fr
