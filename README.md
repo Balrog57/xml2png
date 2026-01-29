@@ -2,30 +2,30 @@
 
 Un fork dédié au visuel. Il génère automatiquement des assets (Wheels, cartouches) à partir de fichiers XML pour habiller vos interfaces.
 
-## Features
+## Fonctionnalités
 
-- **Batch Processing**: Generate thousands of images based on Hyperspin/EmulationStation XML databases.
-- **Advanced Layer System**: 
-  - **Background Layer**: Automatically adapts canvas size to the background image. Supports transparency.
-  - **10 Configurable Layers**: Combine Text, Static Images, and Folder-based Variable Images.
-- **Rich Text Customization**:
-  - **Styles**: Bold, Italic, Underline.
-  - **Formatting**: Color Picker (Hex/Palette), Alignment (Left/Center/Right).
-  - **Controls**: Max Characters limit, Prefix & Suffix support.
-  - **Dynamic Content**: Use Game Description, Year, Genre, Manufacturer, or Game Name (Filename or XML `<name>` tag).
-  - **Fonts**: Scan and use installed System Fonts with search functionality.
-- **Real-time Preview**: 
-  - Visual editor with accurate Aspect Ratio handling. 
-  - Highlights selected layer bounding box.
-  - Demo text mode when no XML is loaded (shows example game: Sonic The Hedgehog 2).
-- **Layer Visibility Toggles**: Eye icon to show/hide individual layers without losing settings.
-- **Image Transformations**: Mirror (horizontal flip), Stretch (ignore aspect ratio), Rotation (0°, 90°, 180°, 270°).
-- **User Experience**:
-  - Stop/Pause generation.
-  - Automatic `assets/backgrounds` detection for easy background selection.
-- **High Performance**: Built with Python and Pillow for fast image processing.
+- **Traitement par lot** : Génération de milliers d'images basées sur les bases de données XML Hyperspin/EmulationStation.
+- **Système de calques avancé** : 
+  - **Calque d'arrière-plan** : Adapte automatiquement la taille du canevas à l'image de fond. Supporte la transparence.
+  - **10 Calques configurables** : Combinez Texte, Images Statiques, et Images Variables basées sur des dossiers.
+- **Personnalisation de texte riche** :
+  - **Styles** : Gras, Italique, Souligné.
+  - **Formatage** : Sélecteur de couleur (Hex/Palette), Alignement (Gauche/Centre/Droite).
+  - **Contrôles** : Limite de caractères max, support Préfixe & Suffixe.
+  - **Contenu dynamique** : Utilisez Description du jeu, Année, Genre, Fabricant, ou Nom du jeu (Nom de fichier ou balise XML `<name>`).
+  - **Polices** : Scanne et utilise les polices système installées avec fonctionnalité de recherche.
+- **Aperçu en temps réel** : 
+  - Éditeur visuel avec gestion précise du ratio d'aspect.
+  - Mise en évidence de la boîte englobante du calque sélectionné.
+  - Mode texte de démonstration quand aucun XML n'est chargé (montre l'exemple : Sonic The Hedgehog 2).
+- **Bascules de visibilité des calques** : Icône œil pour afficher/masquer les calques individuels sans perdre les réglages.
+- **Transformations d'image** : Miroir (flip horizontal), Étirement (ignorer le ratio), Rotation (0°, 90°, 180°, 270°).
+- **Expérience Utilisateur** :
+  - Arrêt/Pause de la génération.
+  - Détection automatique de `assets/backgrounds` pour une sélection facile du fond.
+- **Haute Performance** : Construit avec Python et Pillow pour un traitement d'image rapide.
 
-## Requirements
+## Prérequis
 
 - Python 3.10+
 - PyQt6
@@ -33,43 +33,43 @@ Un fork dédié au visuel. Il génère automatiquement des assets (Wheels, carto
 
 ## Installation
 
-1. Clone the repository.
-2. Install dependencies:
+1. Clonez le dépôt.
+2. Installez les dépendances :
    ```bash
    pip install -r requirements.txt
    ```
-3. Run the application:
+3. Lancez l'application :
    ```bash
    python src/main.py
    ```
 
-## Usage
+## Utilisation
 
-1. **Select XML**: Load your Hyperspin or EmulationStation XML file.
-2. **Select Destination**: Choose where the generated images will be saved.
-3. **Configure Background**:
-   - Place your background images in `assets/backgrounds`.
-   - Select "Background" layer and choose your image from the dropdown.
-   - The output image size will match your background resolution.
-4. **Configure Layers**:
-   - Enable up to 10 layers.
-   - Choose **Text**, **Static Image**, or **Folder Image** (matches ROM filename).
-   - Customize position, size, and styles.
-5. **Generate**: Click "GENERATE ALL IMAGES". You can stop the process at any time.
+1. **Sélectionner XML** : Chargez votre fichier XML Hyperspin ou EmulationStation.
+2. **Sélectionner Destination** : Choisissez où les images générées seront sauvegardées.
+3. **Configurer l'arrière-plan** :
+   - Placez vos images de fond dans `assets/backgrounds`.
+   - Sélectionnez le calque "Background" et choisissez votre image dans le menu déroulant.
+   - La taille de l'image de sortie correspondra à la résolution de votre fond.
+4. **Configurer les calques** :
+   - Activez jusqu'à 10 calques.
+   - Choisissez **Texte**, **Image Statique**, ou **Image Dossier** (correspond au nom de fichier ROM).
+   - Personnalisez la position, la taille et les styles.
+5. **Générer** : Cliquez sur "GENERATE ALL IMAGES". Vous pouvez arrêter le processus à tout moment.
 
-## Packaging
+## Création de l'exécutable
 
-To build the standalone `.exe`:
+Pour construire l'exécutable `.exe` autonome :
 ```bash
 pyinstaller xml2png.spec
 ```
-The executable will be located in the `dist/XML2PNG_Build/` folder.
+L'exécutable se trouvera dans le dossier `dist/XML2PNG_Build/`.
 
-## Key Modules
+## Modules Clés
 
-- **src/model**: XML parsing (`xml_parser.py`) and Image Composition logic (`compositor.py`).
-- **src/view**: PyQt6 User Interface (`main_window.py`, `layer_controls.py`, `preview_widget.py`).
-- **src/controller**: Application logic and threading (`app_controller.py`).
+- **src/model** : Analyse XML (`xml_parser.py`) et logique de Composition d'Image (`compositor.py`).
+- **src/view** : Interface Utilisateur PyQt6 (`main_window.py`, `layer_controls.py`, `preview_widget.py`).
+- **src/controller** : Logique de l'application et threading (`app_controller.py`).
 
 ## Credits
 
