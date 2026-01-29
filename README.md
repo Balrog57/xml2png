@@ -1,6 +1,6 @@
-# XML2PNG (Python Edition)
+# 🖼️ XML2PNG (Python Edition)
 
-A modern, robust, and performant tool to generate retro-gaming media (Artworks, Wheels, Logos) from XML databases.
+Un fork dédié au visuel. Il génère automatiquement des assets (Wheels, cartouches) à partir de fichiers XML pour habiller vos interfaces.
 
 ## Features
 

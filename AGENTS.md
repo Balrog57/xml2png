@@ -1,7 +1,8 @@
 # XML2PNG Development Guide
 
 ## Project Overview
-XML2PNG is a PyQt6-based desktop application for generating retro-gaming media (artworks, wheels, logos) from XML databases. The application follows an MVC architecture with separate layers for model, view, and controller components.
+
+🖼️ XML2PNG (Python Edition) : Un fork dédié au visuel. Il génère automatiquement des assets (Wheels, cartouches) à partir de fichiers XML pour habiller vos interfaces. The application follows an MVC architecture with separate layers for model, view, and controller components.
 
 ## Development Commands
 
